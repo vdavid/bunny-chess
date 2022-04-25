@@ -1,34 +1,37 @@
 import { Chessboard, Square } from 'react-chessboard'
 // @ts-ignore
-import { Chess } from "chess.js";
+import { Chess } from 'chess.js'
 import { useState } from 'react'
 
-export default function ChessBoard() {
-    const [game, setGame] = useState(new Chess());
+type Props = {
+    whiteIndex: number
+    blackIndex: number
+}
+export default function ChessBoard({ whiteIndex, blackIndex }: Props) {
+    const [game, setGame] = useState<Chess>(new Chess())
 
-    function safeGameMutate(game: Chess) {
-        setGame((g: Chess) => {
-            const update = { ...g };
-            game(update);
-            return update;
-        });
+    function makeMoveAndSaveState(mutatorFunction: (game: Chess) => void): void {
+        setGame((currentState: Chess) => {
+            const copyOfCurrentState = { ...currentState }
+            mutatorFunction(copyOfCurrentState)
+            return copyOfCurrentState
+        })
     }
 
     function onDrop(sourceSquare: Square, targetSquare: Square) {
-
-        let move = null;
-        safeGameMutate((game: Chess) => {
+        let move = null
+        makeMoveAndSaveState((game: Chess) => {
             move = game.move({
                 from: sourceSquare,
                 to: targetSquare,
-                promotion: "q", // always promote to a queen for example simplicity
-            });
-        });
-        if (move === null) return false; // illegal move
-        return true;
+                promotion: 'q', // always promote to a queen for example simplicity
+            })
+        })
+        if (move === null) return false // illegal move
+        return true
     }
 
     return <div>
-        <Chessboard id={1} position={game.fen()} onPieceDrop={onDrop} boardWidth={200} />
+        <Chessboard id={whiteIndex * 100 + blackIndex} position={game.fen()} onPieceDrop={onDrop} boardWidth={200} />
     </div>
 }
