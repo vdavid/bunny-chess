@@ -29,6 +29,6 @@ export default function ChessBoard() {
     }
 
     return <div>
-        <Chessboard id={1} position={game.fen()} onPieceDrop={onDrop} />
+        <Chessboard id={1} position={game.fen()} onPieceDrop={onDrop} boardWidth={200} />
     </div>
 }
