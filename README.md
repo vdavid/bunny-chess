@@ -1,4 +1,8 @@
-# Getting Started with Create React App
+# Bunny Chess
+
+## Acknowledgements
+
+Chess board is based on [react-chessboard](https://github.com/Clariity/react-chessboard)
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
