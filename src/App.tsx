@@ -12,17 +12,16 @@ const darkIndex = parseInt(searchParams.get('darkIndex') || '')
 const isIframe = searchParams.get('iframe') === 'true'
 
 function App() {
-    return isIframe ? iframeApp() : mainApp()
+    return isIframe ? <IframeApp /> : <MainApp />
 }
 
-function iframeApp() {
-
+function IframeApp() {
     return (<div>
         <ChessBoard lightIndex={lightIndex} darkIndex={darkIndex} />
     </div>)
 }
 
-function mainApp() {
+function MainApp() {
     return (<div className="App">
         <table cellPadding={5}>
             <thead>
@@ -48,7 +47,6 @@ function mainApp() {
             )}
             </tbody>
         </table>
-
     </div>)
 }
 
