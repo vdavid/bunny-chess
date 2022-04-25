@@ -1,6 +1,6 @@
 import React from 'react'
 import './App.css'
-import ChessBoard from './ChessBoard'
+import ChessBoardWithTimer from './ChessBoardWithTimer'
 import ChessBoardInIframe from './ChessBoardInIframe'
 
 // eslint-disable-next-line
@@ -17,7 +17,7 @@ function App() {
 
 function IframeApp() {
     return (<div>
-        <ChessBoard lightIndex={lightIndex} darkIndex={darkIndex} />
+        <ChessBoardWithTimer lightIndex={lightIndex} darkIndex={darkIndex} lightPlayerName={players[lightIndex]} darkPlayerName={players[darkIndex]} />
     </div>)
 }
 
