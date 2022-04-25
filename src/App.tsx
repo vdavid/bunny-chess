@@ -1,44 +1,55 @@
 import React from 'react'
 import './App.css'
 import ChessBoard from './ChessBoard'
+import ChessBoardInIframe from './ChessBoardInIframe'
 
-const players = 'Dávid,Andris,Ádám,László,Gábor,Zoltán,József,Péter'.split(',')
+// eslint-disable-next-line
+const searchParams = new URLSearchParams(location.search)
+const players = (searchParams.get('players') || 'A,B,C').split(',')
+//const minutes = parseInt(searchParams.get('minutes') || '30')
+const lightIndex = parseInt(searchParams.get('lightIndex') || '')
+const darkIndex = parseInt(searchParams.get('darkIndex') || '')
+const isIframe = searchParams.get('iframe') === 'true'
 
 function App() {
-    return (
-        <div className="App">
-            <table cellPadding={5}>
-                <thead>
-                <tr>
-                    <th></th>
-                    <th colSpan={players.length}>White</th>
-                </tr>
-                <tr>
-                    <th></th>
-                    <th></th>
-                    {players.map((playerName, index) => <th key={`header-${index}`}>{playerName}</th>)}
-                </tr>
-                </thead>
-                <tbody>
-                {players.map((blackPlayerName, blackIndex) =>
-                    <tr key={`row-${blackIndex}`}>
-                        {!blackIndex && <th rowSpan={players.length}>Black</th>}
-                        <th>{blackPlayerName}</th>
-                        {players.map((whitePlayerName, whiteIndex) => <td key={`cell-${whiteIndex}`}>
-                            {blackIndex >= whiteIndex ? '' : <>chessboard for {whitePlayerName} and {blackPlayerName}: <ChessBoard /></>}
-                            </td>)}
-                    </tr>
-                )}
-                </tbody>
-            </table>
-
-        </div>
-    )
+    return isIframe ? iframeApp() : mainApp()
 }
 
-// const players = process.env.PLAYERS?.split(',') || []
-// console.log(players);
-// console.log('xxx')
-//const minutes = process.env.minutes || 5
+function iframeApp() {
+
+    return (<div>
+        <ChessBoard lightIndex={lightIndex} darkIndex={darkIndex} />
+    </div>)
+}
+
+function mainApp() {
+    return (<div className="App">
+        <table cellPadding={5}>
+            <thead>
+            <tr>
+                <th></th>
+                <th colSpan={players.length}>Light</th>
+            </tr>
+            <tr>
+                <th></th>
+                <th></th>
+                {players.map((playerName, index) => <th key={`header-${index}`}>{playerName}</th>)}
+            </tr>
+            </thead>
+            <tbody>
+            {players.map((darkPlayerName, darkIndex) =>
+                <tr key={`row-${darkIndex}`}>
+                    {!darkIndex && <th rowSpan={players.length}>Dark</th>}
+                    <th>{darkPlayerName}</th>
+                    {players.map((lightPlayerName, lightIndex) => <td key={`cell-${lightIndex}`}>
+                        {darkIndex >= lightIndex ? '' : ChessBoardInIframe({lightIndex, lightPlayerName, darkIndex, darkPlayerName})}
+                    </td>)}
+                </tr>
+            )}
+            </tbody>
+        </table>
+
+    </div>)
+}
 
 export default App

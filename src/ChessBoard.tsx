@@ -4,10 +4,10 @@ import { Chess } from 'chess.js'
 import { useState } from 'react'
 
 type Props = {
-    whiteIndex: number
-    blackIndex: number
+    lightIndex: number
+    darkIndex: number
 }
-export default function ChessBoard({ whiteIndex, blackIndex }: Props) {
+export default function ChessBoard({ lightIndex, darkIndex }: Props) {
     const [game, setGame] = useState<Chess>(new Chess())
 
     function makeMoveAndSaveState(mutatorFunction: (game: Chess) => void): void {
@@ -32,6 +32,6 @@ export default function ChessBoard({ whiteIndex, blackIndex }: Props) {
     }
 
     return <div>
-        <Chessboard id={whiteIndex * 100 + blackIndex} position={game.fen()} onPieceDrop={onDrop} boardWidth={200} />
+        <Chessboard id={lightIndex * 100 + darkIndex} position={game.fen()} onPieceDrop={onDrop} boardWidth={200} />
     </div>
 }
