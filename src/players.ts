@@ -9,13 +9,13 @@ export const playerNames = [
     'Zoltán',
 ]
 export const playerColors = [
-    'red',
-    'blue',
-    'green',
-    'amber',
-    'brown',
-    'blueGrey',
-    'purple',
     'lime',
+    'red',
+    'amber',
+    'green',
+    'teal',
+    'blue',
+    'indigo',
+    'purple',
     'pink',
 ]

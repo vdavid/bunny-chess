@@ -6,6 +6,7 @@ import { BoardStatus, retrieveState, sendState } from './statusSaver'
 import Timer from './Timer'
 import { playerColors } from './players'
 import colors from './materialColors'
+import { getPieces } from './customPieces'
 
 type Props = {
     lightIndex: number
@@ -22,7 +23,7 @@ export enum Result {
 }
 
 /* Set game length here! */
-const gameLengthMs = 30 * 60 * 1000
+const gameLengthMs = 160 * 60 * 1000
 
 export default function ChessBoardWithTimer({ lightIndex, darkIndex, lightPlayerName, darkPlayerName }: Props) {
     const [game, setGame] = useState<Chess>(new Chess())
@@ -38,9 +39,13 @@ export default function ChessBoardWithTimer({ lightIndex, darkIndex, lightPlayer
 
     useEffect(() => {
         const interval = setInterval(() => {
+            if (gameResult !== Result.Running && lightElapsedMs !== 0 && darkElapsedMs !== 0) {
+                clearInterval(interval)
+                return
+            }
             if (remoteBoardStatus && elapsedMsSinceLastUpdate) {
-                setLightElapsedMs(remoteBoardStatus.lightElapsedMs + (isLightTurn ? elapsedMsSinceLastUpdate : 0))
-                setDarkElapsedMs(remoteBoardStatus.darkElapsedMs + (!isLightTurn ? elapsedMsSinceLastUpdate : 0))
+                setLightElapsedMs(remoteBoardStatus.lightElapsedMs + ((isLightTurn && (gameResult === Result.Running)) ? elapsedMsSinceLastUpdate : 0))
+                setDarkElapsedMs(remoteBoardStatus.darkElapsedMs + ((!isLightTurn && (gameResult === Result.Running)) ? elapsedMsSinceLastUpdate : 0))
                 if (lightElapsedMs > gameLengthMs) {
                     setHasLightResigned(true)
                 } else if (darkElapsedMs > gameLengthMs) {
@@ -49,7 +54,7 @@ export default function ChessBoardWithTimer({ lightIndex, darkIndex, lightPlayer
             }
         }, 70)
         return () => clearInterval(interval)
-    }, [remoteBoardStatus, elapsedMsSinceLastUpdate, isLightTurn, lightElapsedMs, darkElapsedMs])
+    }, [remoteBoardStatus, elapsedMsSinceLastUpdate, isLightTurn, lightElapsedMs, darkElapsedMs, gameResult])
 
     /* Update every second */
     useEffect(() => {
@@ -98,6 +103,7 @@ export default function ChessBoardWithTimer({ lightIndex, darkIndex, lightPlayer
         <Timer
             playerIndex={darkIndex}
             isLight={false}
+            isLightTurn={isLightTurn}
             targetMs={gameLengthMs}
             elapsedMs={darkElapsedMs}
             gameResult={gameResult} />
@@ -105,12 +111,20 @@ export default function ChessBoardWithTimer({ lightIndex, darkIndex, lightPlayer
             id={lightIndex * 100 + darkIndex}
             position={game.fen()}
             onPieceDrop={onDrop}
-            customLightSquareStyle={{ backgroundColor: colors[playerColors[lightIndex]]['100'] }}
-            customDarkSquareStyle={{ backgroundColor: colors[playerColors[darkIndex]]['700'] }}
+            customPieces={getPieces(
+                colors[playerColors[lightIndex]]['100'],
+                colors[playerColors[lightIndex]]['900'],
+                colors[playerColors[darkIndex]]['700'],
+                colors.blueGrey['900'],
+                colors.blueGrey['800'],
+            )}
+            customLightSquareStyle={gameResult === Result.Running ? undefined : { backgroundColor: colors.grey['100'] }}
+            customDarkSquareStyle={gameResult === Result.Running ? undefined : { backgroundColor: colors.grey['500'] }}
             boardWidth={200} />
         <Timer
             playerIndex={lightIndex}
             isLight={true}
+            isLightTurn={isLightTurn}
             targetMs={gameLengthMs}
             elapsedMs={lightElapsedMs}
             gameResult={gameResult} />
