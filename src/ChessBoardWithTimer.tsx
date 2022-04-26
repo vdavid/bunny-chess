@@ -2,7 +2,7 @@ import { Chessboard, Square } from 'react-chessboard'
 // @ts-ignore
 import { Chess } from 'chess.js'
 import { useEffect, useState } from 'react'
-import { retrieveState, sendState } from './statusSaver'
+import { BoardStatus, retrieveState, sendState } from './statusSaver'
 import Timer from './Timer'
 
 type Props = {
@@ -12,63 +12,57 @@ type Props = {
     darkPlayerName: string
 }
 
-enum Color {
+enum Result {
+    Running = 'running',
     Light = 'light',
     Dark = 'dark',
+    Draw = 'draw',
 }
 
 export default function ChessBoardWithTimer({ lightIndex, darkIndex, lightPlayerName, darkPlayerName }: Props) {
     const [game, setGame] = useState<Chess>(new Chess())
+    const [remoteBoardStatus, setRemoteBoardStatus] = useState<BoardStatus | undefined>(undefined)
     const [lightElapsedMs, setLightElapsedMs] = useState(0)
     const [darkElapsedMs, setDarkElapsedMs] = useState(0)
-    const [gameStartDateTime, setGameStartDateTime] = useState<number | undefined>(undefined)
-    const [lastUpdateDateTime, setLastUpdateDateTime] = useState<number | undefined>(undefined)
 
-    const elapsedMsSinceLastUpdate = new Date().getTime() - (lastUpdateDateTime || 0)
+    const elapsedMsSinceLastUpdate = remoteBoardStatus ? (new Date().getTime() - new Date(remoteBoardStatus.lastUpdateDateTime).getTime()) : undefined
     const isLightTurn: boolean = game.turn() === 'w'
-    const isGameOver: boolean = game.game_over()
-    const winner: Color | undefined = game.in_checkmate() ? (game.turn() === 'w' ? Color.Dark : Color.Light) : undefined
+    const gameResult: Result = game.game_over()
+        ? (game.in_checkmate() ? (game.turn() === 'w' ? Result.Dark : Result.Light) : Result.Draw)
+        : Result.Running
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            if (remoteBoardStatus && elapsedMsSinceLastUpdate) {
+                setLightElapsedMs(remoteBoardStatus.lightElapsedMs + (isLightTurn ? elapsedMsSinceLastUpdate : 0))
+                setDarkElapsedMs(remoteBoardStatus.darkElapsedMs + (!isLightTurn ? elapsedMsSinceLastUpdate : 0))
+            }
+        }, 70)
+        return () => clearInterval(interval)
+    }, [remoteBoardStatus, elapsedMsSinceLastUpdate, isLightTurn])
 
     /* Update every second */
     useEffect(() => {
         const interval = setInterval(() => {
-            retrieveState(`${lightIndex}-${darkIndex}`).then((response) => {
-                /* Update startDateTime */
-                if (gameStartDateTime !== response.startDateTime) {
-                    setGameStartDateTime(response.startDateTime)
-                }
-
-                const remoteBoardStatus = response.boards[`${lightIndex}-${darkIndex}`]
-                if (remoteBoardStatus?.fen) {
-                    if (remoteBoardStatus?.fen !== game.fen()) {
-                        setGame(new Chess(remoteBoardStatus.fen))
-                    }
-                    setLastUpdateDateTime(remoteBoardStatus.lastUpdateDateTime)
-                    //const elapsedMsSinceStartDateTime = new Date().getTime() - response.startDateTime
-                    const elapsedMsSinceLastUpdate = new Date().getTime() - remoteBoardStatus.lastUpdateDateTime
-                    if (isLightTurn) {
-                        setLightElapsedMs(remoteBoardStatus.lightElapsedMs + elapsedMsSinceLastUpdate)
-                    } else {
-                        setDarkElapsedMs(remoteBoardStatus.darkElapsedMs + elapsedMsSinceLastUpdate)
+            retrieveState(`${lightIndex}-${darkIndex}`).then((boardStatus: BoardStatus) => {
+                if (boardStatus?.fen) {
+                    setRemoteBoardStatus(boardStatus)
+                    if (boardStatus.fen !== game.fen()) {
+                        setGame(new Chess(boardStatus.fen))
                     }
                 }
             })
         }, 1000)
         return () => clearInterval(interval)
-    }, [game, lightIndex, darkIndex, gameStartDateTime, isLightTurn])
+    }, [game, lightIndex, darkIndex, isLightTurn])
 
     function makeMoveAndSaveState(mutatorFunction: (game: Chess) => void): void {
-        const nowDateTime = new Date().getTime()
-        if (isLightTurn) {
-            setLightElapsedMs(lightElapsedMs => lightElapsedMs + elapsedMsSinceLastUpdate)
-        } else {
-            setDarkElapsedMs(darkElapsedMs => darkElapsedMs + elapsedMsSinceLastUpdate)
-        }
-        setLastUpdateDateTime(nowDateTime)
         setGame((currentState: Chess) => {
             const copyOfCurrentState = { ...currentState }
             mutatorFunction(copyOfCurrentState)
-            sendState(`${lightIndex}-${darkIndex}`, copyOfCurrentState.fen(), lightElapsedMs, darkElapsedMs, nowDateTime).then(() => {})
+            sendState(`${lightIndex}-${darkIndex}`, copyOfCurrentState.fen(), lightElapsedMs, darkElapsedMs, new Date().toISOString()).then((boardStatus) => {
+                setRemoteBoardStatus(boardStatus)
+            })
             return copyOfCurrentState
         })
     }
@@ -90,8 +84,8 @@ export default function ChessBoardWithTimer({ lightIndex, darkIndex, lightPlayer
         <Timer player={darkPlayerName} isLight={false} targetMs={20 * 60 * 1000} elapsedMs={darkElapsedMs} />
         <Chessboard id={lightIndex * 100 + darkIndex} position={game.fen()} onPieceDrop={onDrop} boardWidth={200} />
         <Timer player={lightPlayerName} isLight={true} targetMs={20 * 60 * 1000} elapsedMs={lightElapsedMs} />
-        {isGameOver &&
-            <span>{winner === Color.Light ? `${lightPlayerName} won!` : (winner === Color.Dark ? `${darkPlayerName} won!` : 'It’s a draw!')}</span>
+        {(gameResult !== Result.Running) &&
+            <span>{gameResult === Result.Light ? `${lightPlayerName} won!` : (gameResult === Result.Dark ? `${darkPlayerName} won!` : 'It’s a draw!')}</span>
         }
     </div>
 }

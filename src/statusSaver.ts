@@ -1,34 +1,29 @@
 // TODO: Magic value!
 const backendUrl = 'http://127.0.0.1:2000/'
 
-type BoardStatus = {
+export type BoardStatus = {
     fen: string
     lightElapsedMs: number
     darkElapsedMs: number
-    lastUpdateDateTime: number
-}
-type StatusResponse = {
-    boards: { [id: string]: BoardStatus }
-    startDateTime: number
+    lastUpdateDateTime: string
+    gameStartDateTime: string
 }
 
-export async function sendAndRetrieveState(id: string, fen: string, lightElapsedMs: number, darkElapsedMs: number, currentDateTime: number): Promise<StatusResponse> {
+async function callBackend(url: string): Promise<{ [id: string]: BoardStatus }> {
     const options = { method: 'GET', headers: { 'Content-Type': 'application/json', } }
-    const urlWithQueryString = backendUrl + '?' + new URLSearchParams({
+    return (await (await fetch(url, options)).json())
+}
+
+export async function sendState(id: string, fen: string, lightElapsedMs: number, darkElapsedMs: number, currentDateTime: string): Promise<BoardStatus> {
+    return (await callBackend(backendUrl + '?' + new URLSearchParams({
         id,
         fen,
         lightElapsedMs: lightElapsedMs.toString(),
         darkElapsedMs: darkElapsedMs.toString(),
-        currentDateTime: currentDateTime.toString()
-    })
-    const response = await fetch(urlWithQueryString, options)
-    return await response.json() as StatusResponse
+        currentDateTime
+    })))[id]
 }
 
-export async function sendState(id: string, fen: string, lightElapsedMs: number, darkElapsedMs: number, currentDateTime: number): Promise<void> {
-    await sendAndRetrieveState(id, fen, lightElapsedMs, darkElapsedMs, currentDateTime)
-}
-
-export function retrieveState(id: string): Promise<StatusResponse> {
-    return sendAndRetrieveState(id, '', 0, 0, 0)
+export async function retrieveState(id: string): Promise<BoardStatus> {
+    return (await callBackend(backendUrl + '?' + new URLSearchParams({ id })))[id]
 }
