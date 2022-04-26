@@ -1,5 +1,5 @@
 // TODO: Magic value!
-const backendUrl = 'http://127.0.0.1:2000/'
+const backendUrl = 'http://188.6.180.151:2000/'
 
 export type BoardStatus = {
     fen: string
