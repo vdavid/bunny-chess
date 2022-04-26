@@ -21,7 +21,8 @@ export enum Result {
     Draw = 'draw',
 }
 
-const gameLengthMs = 0.2 * 60 * 1000
+/* Set game length here! */
+const gameLengthMs = 30 * 60 * 1000
 
 export default function ChessBoardWithTimer({ lightIndex, darkIndex, lightPlayerName, darkPlayerName }: Props) {
     const [game, setGame] = useState<Chess>(new Chess())
@@ -113,12 +114,12 @@ export default function ChessBoardWithTimer({ lightIndex, darkIndex, lightPlayer
             targetMs={gameLengthMs}
             elapsedMs={lightElapsedMs}
             gameResult={gameResult} />
-        <div style={{ textAlign: 'center' }}>{(gameResult !== Result.Running) ?
+        <div style={{ backgroundColor: colors.grey[500], textAlign: 'center' }}>{(gameResult !== Result.Running) ?
             gameResult === Result.Light
                 ? `${lightPlayerName} won!`
                 : (gameResult === Result.Dark ? `${darkPlayerName} won!`
                     : 'It’s a draw!')
-            : ' '}</div>
+            : 'Go go go!'}</div>
     </div>
 }
 
