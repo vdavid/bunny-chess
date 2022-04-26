@@ -1,4 +1,4 @@
-import React, {useRef} from 'react'
+import React, { useRef } from 'react'
 
 type Props = {
     lightIndex: number
@@ -21,5 +21,6 @@ export default function ChessBoardInIframe({ lightIndex, darkIndex, lightPlayerN
                 style={{ border: 'none' }} width={200}
                 src={'/?' + new URLSearchParams([['iframe', 'true'], ['lightIndex', lightIndex.toString()], ['darkIndex', darkIndex.toString()]]).toString()}
                 title={`chessboard for ${lightPlayerName} and ${darkPlayerName}`}
-        /></>
+        />
+    </>
 }

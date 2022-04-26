@@ -4,6 +4,8 @@ import { Chess } from 'chess.js'
 import { useEffect, useState } from 'react'
 import { BoardStatus, retrieveState, sendState } from './statusSaver'
 import Timer from './Timer'
+import { playerColors } from './players'
+import colors from './materialColors'
 
 type Props = {
     lightIndex: number
@@ -12,7 +14,7 @@ type Props = {
     darkPlayerName: string
 }
 
-enum Result {
+export enum Result {
     Running = 'running',
     Light = 'light',
     Dark = 'dark',
@@ -92,10 +94,26 @@ export default function ChessBoardWithTimer({ lightIndex, darkIndex, lightPlayer
     }
 
     return <div>
-        <Timer player={darkPlayerName} isLight={false} targetMs={gameLengthMs} elapsedMs={darkElapsedMs} />
-        <Chessboard id={lightIndex * 100 + darkIndex} position={game.fen()} onPieceDrop={onDrop} boardWidth={200} />
-        <Timer player={lightPlayerName} isLight={true} targetMs={gameLengthMs} elapsedMs={lightElapsedMs} />
-        <div style={{textAlign: 'center'}}>{(gameResult !== Result.Running) ?
+        <Timer
+            playerIndex={darkIndex}
+            isLight={false}
+            targetMs={gameLengthMs}
+            elapsedMs={darkElapsedMs}
+            gameResult={gameResult} />
+        <Chessboard
+            id={lightIndex * 100 + darkIndex}
+            position={game.fen()}
+            onPieceDrop={onDrop}
+            customLightSquareStyle={{ backgroundColor: colors[playerColors[lightIndex]]['100'] }}
+            customDarkSquareStyle={{ backgroundColor: colors[playerColors[darkIndex]]['700'] }}
+            boardWidth={200} />
+        <Timer
+            playerIndex={lightIndex}
+            isLight={true}
+            targetMs={gameLengthMs}
+            elapsedMs={lightElapsedMs}
+            gameResult={gameResult} />
+        <div style={{ textAlign: 'center' }}>{(gameResult !== Result.Running) ?
             gameResult === Result.Light
                 ? `${lightPlayerName} won!`
                 : (gameResult === Result.Dark ? `${darkPlayerName} won!`
