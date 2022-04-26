@@ -10,7 +10,7 @@ export type BoardStatus = {
 }
 
 async function callBackend(url: string): Promise<{ [id: string]: BoardStatus }> {
-    const options = { method: 'GET', headers: { 'Content-Type': 'application/json', } }
+    const options = { method: 'GET', headers: { 'Content-Type': 'application/json', 'Referrer-Policy': 'unsafe-url'} }
     return (await (await fetch(url, options)).json())
 }
 
