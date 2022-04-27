@@ -23,7 +23,7 @@ export enum Result {
 }
 
 /* Set game length here! */
-const gameLengthMs = 160 * 60 * 1000
+const gameLengthMs = 25 * 60 * 1000
 
 export default function ChessBoardWithTimer({ lightIndex, darkIndex, lightPlayerName, darkPlayerName }: Props) {
     const [game, setGame] = useState<Chess>(new Chess())

@@ -1,12 +1,12 @@
 export const playerNames = [
     'Andris',
     'Ádám',
-    'Dávid',
-    'László',
-    'Gábor',
-    'József',
     'Péter',
     'Zoltán',
+    'Dávid',
+    'Gábor',
+    'László',
+    'József',
 ]
 export const playerColors = [
     'lime',
